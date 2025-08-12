@@ -1,17 +1,15 @@
 # purebasic-wav-show-play
 
-## 2 files with libs
-There are 2 test file
-- for win x86
-- for mac silicon
+## There are 2 test file with libs for
+- win x86
+- mac silicon
 
-## you have to create a "_.wav" file in this directory to test
+## A wav file is needed
+You have to create a "_.wav" file in this directory to test
 
-## the problem (see capture.mov)
+## The problem (see capture.mov)
 res.i=dessine(monCanva, pos, moyennes())
-near line 290, will crash but
+near line 290, will crash but not with the content of this procedure (comment mode below this line "res.i=dessine(monCanva, pos, moyennes())")
 
-but not with the content of this procedure (comment mode below this line "res.i=dessine(monCanva, pos, moyennes())")
-
-## question
-why and how to keep the call procedure ?
+## Question
+Why and how to keep the call procedure ?
