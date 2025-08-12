@@ -7,7 +7,7 @@ There are 2 test file
 
 ## you have to create a "_.wav" file in this directory to test
 
-## the problem
+## the problem (see capture.mov)
 res.i=dessine(monCanva, pos, moyennes())
 near line 290, will crash but
 
