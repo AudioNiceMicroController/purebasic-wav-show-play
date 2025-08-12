@@ -199,6 +199,7 @@ Global monCanva
 monCanva = CanvasGadget(#PB_Any, 0, 0, DesktopScaledX(#w), DesktopScaledY(#h))
 
 Debug "monCanva  : "+Str(monCanva) 
+
 Procedure dessine(canva.i, x.l, Array moyennes.d(1)); 1 pOUR VECTEUR !!!
   StartDrawing(CanvasOutput(canva))
   Box(0, 0, OutputWidth(), OutputHeight(), $FFFFFF) ; efface en blanc
@@ -208,7 +209,7 @@ Procedure dessine(canva.i, x.l, Array moyennes.d(1)); 1 pOUR VECTEUR !!!
   
   ; tracer la barre de position
   For i = 0 To 5
-    LineXY(x+i, #h, x+i, #h-30, RGB(0, 0, 0))
+    LineXY(x+i, #h, x+i, 0, RGB(0, 0, 0))
   Next i
   StopDrawing()
   ProcedureReturn 0
@@ -279,7 +280,7 @@ Repeat
   pourc.f = pos / audioData\info\frames * 1.0
   pos=Int(pourc*#w)
   
-      res.i=dessine(monCanva, pos, moyennes()); bug avec 10 donc en bas
+  res.i=dessine(monCanva, pos, moyennes()); bug avec 10 donc en bas
   
 ;   ; refaire le graphique
 ;   StartDrawing(CanvasOutput(monCanva))
@@ -325,8 +326,8 @@ sf_close(audioData\file)
 
 End
 ; IDE Options = PureBasic 6.21 - C Backend (MacOS X - arm64)
-; CursorPosition = 76
-; FirstLine = 48
+; CursorPosition = 326
+; FirstLine = 289
 ; Folding = -
 ; Optimizer
 ; EnableXP
