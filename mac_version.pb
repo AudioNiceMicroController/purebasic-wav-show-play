@@ -1,4 +1,5 @@
 ﻿;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; sndfile ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+EnableExplicit
 ; --- Constantes libsndfile ---
 #SFM_READ = $10 ; Mode lecture pour sf_open (0x10)
 #SFM_WRITE = $20
@@ -9,7 +10,7 @@
 #SEEK_END = 2
 
 ; --- Importation des fonctions libsndfile ---
-ImportC "sndfile.lib"
+ImportC "libsndfile.1.0.37.dylib"
   sf_open(filename.p-utf8, mode.l, *sfinfo)
   ;   sf_open(filename.s, mode.l, *sfinfo)  ; filename.s = PureBasic String
   sf_strerror(*sndfile)
@@ -74,7 +75,7 @@ Enumeration
   #paBadBufferPtr
 EndEnumeration
 
-ImportC "portaudio_x64.lib"
+ImportC "libportaudio.2.dylib"
   Pa_Initialize()
   Pa_Terminate()
   Pa_GetDeviceCount()
@@ -134,7 +135,7 @@ EndProcedure
 ; --- Déclaration des variables ---
 Define audioData.PaData
 
-Define filename.s = "_.wav" ; Chemin du fichier WAV
+Define filename.s = "/Users/uio/Music/1.wav" ; Chemin du fichier WAV
 
 ; --- Ouverture du fichier WAV ---
 audioData\info\format = 0 ; Initialise le format à 0 comme requis par sf_open
@@ -153,18 +154,17 @@ EndIf
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-nbreEchantillonCanalGauche = audioData\info\frames
+Define nbreEchantillonCanalGauche = audioData\info\frames
 #w = 1000
 #h = 200
-nbFrameParPixel = nbreEchantillonCanalGauche / #w
+Define nbFrameParPixel = nbreEchantillonCanalGauche / #w
 ; Debug("nbFrameParPixel : " + Str(nbFrameParPixel))
-nAlire.i = nbFrameParPixel*2; stéréo
+Define nAlire = nbFrameParPixel*2; stéréo
 Dim tamp.f(nAlire)
 Dim moyennes.d(#w)
-uneMoyenne.d
-*p = @tamp(0)
-i.i=0
-k.i
+Define uneMoyenne.d, max.d
+Define *p = @tamp(0)
+Define i, k, m
 k = sf_read_float(audioData\file, *p, nAlire); on a lu les 2 canaux gauches et droits
 While k=nAlire
   ;     Debug Str(i)+"   "+Str(nAlire)+"   "+Str(k)
@@ -179,7 +179,7 @@ While k=nAlire
 Wend
 
 ; trouver le max
-max.d=moyennes(0)
+max=moyennes(0)
 For i = 0 To #w-1
   If max < moyennes(i)
     max = moyennes(i)
@@ -192,25 +192,31 @@ For i = 0 To #w-1
 Next i
 
 
-OpenWindow(0, 100, 100, #w, #h, "2D Drawing Test")
-CanvasGadget(0, 0, 0, DesktopScaledX(#w), DesktopScaledY(#h))
 
-Procedure dessine(canva.l, x.l, Array moyennes.d(1)); 1 pOUR VECTEUR !!!
+OpenWindow(0, 100, 100, #w, #h, "2D Drawing Test")
+
+Global monCanva
+monCanva = CanvasGadget(#PB_Any, 0, 0, DesktopScaledX(#w), DesktopScaledY(#h))
+
+Debug "monCanva  : "+Str(monCanva) 
+
+Procedure dessine(canva, x, Array moyennes.d(1)); 1 pOUR VECTEUR !!!
   StartDrawing(CanvasOutput(canva))
   Box(0, 0, OutputWidth(), OutputHeight(), $FFFFFF) ; efface en blanc
+  Protected i
   For i = 0 To #w-1
     LineXY(i, #h, i, #h-moyennes(i), RGB(0, 152, 0))
   Next i
   
   ; tracer la barre de position
   For i = 0 To 5
-    LineXY(x+i, #h, x+i, #h-30, RGB(0, 0, 0))
+    LineXY(x+i, #h, x+i, 0, RGB(0, 0, 0))
   Next i
   StopDrawing()
-  ProcedureReturn 0
+  ;   ProcedureReturn 0
 EndProcedure
 
-dessine(0, 10, moyennes())
+dessine(monCanva, 10, moyennes())
 
 sf_seek(audioData\file, 0, #SEEK_SET);
 
@@ -247,78 +253,47 @@ EndIf
 ; Debug("Canaux : " + Str(audioData\info\channels))
 ; Debug("Nombre total de frames : " + Str(audioData\info\frames))
 
-; Structure Fenetre
-;   w.l
-;   h.l
-;   *go
-; EndStructure
+; AddWindowTimer(0, 0, 10) ; Timeout = 10 ms
 
-; Procedure Parler_Chat(*this.Fenetre)
-;   ;   Debug *this\nom + " : Miaou !"
-;   
-; EndProcedure
-; 
-; fen.Fenetre
-; fen\w=1000
-; fen\h=200
-
-AddWindowTimer(0, 0, 100) ; Timeout = 10 ms
+Define Event, pos, x, y, res
+Define pourc.d
 
 Global lastTime = ElapsedMilliseconds()
 Repeat
-  Event = WaitWindowEvent()
-  
-  Select Event
-    Case #PB_Event_Gadget
-      Select EventGadget()
-        Case 0 ; Canvas gauche
-          If EventType() = #PB_EventType_LeftClick
-            x = GetGadgetAttribute(0, #PB_Canvas_MouseX)
-            y = GetGadgetAttribute(0, #PB_Canvas_MouseY)
-            pourc.f = x / #w
-            pourc.f * audioData\info\frames
-            pos.i = Int(pourc)
-            sf_seek(audioData\file, pos, #SEEK_SET)
-;             Debug pourc
-            Debug "Clic sur gauche: X=" + Str(x) + " Y=" + Str(y)
+  Event = WindowEvent()
+  If Event
+    ;   Debug Event
+    Select Event  
+      Case #PB_Event_Gadget
+        Select EventGadget()
+          Case monCanva
+            If EventType() = #PB_EventType_LeftClick
+              x = GetGadgetAttribute(monCanva, #PB_Canvas_MouseX)
+              y = GetGadgetAttribute(monCanva, #PB_Canvas_MouseY)
+              pourc = x / #w
+              pourc * audioData\info\frames
+              pos = Int(pourc)
+              sf_seek(audioData\file, pos, #SEEK_SET)
+              ; Debug pourc
+              ; Debug "Clic sur gauche: X=" + Str(x) + " Y=" + Str(y)
+            EndIf
             
-          EndIf 
-      EndSelect
-  EndSelect
-  
-  pos.i = sf_seek(audioData\file, 0, #SEEK_CUR);
-  pourc.f = pos / audioData\info\frames * 1.0
-  pos=Int(pourc*#w)
-  
-  res.i=dessine(0, pos, moyennes()); bug avec 10 donc en bas
-  
-;   ; refaire le graphique
-;   StartDrawing(CanvasOutput(canva))
-;   Box(0, 0, OutputWidth(), OutputHeight(), $FFFFFF) ; efface en blanc
-;   For i = 0 To #w-1
-;     LineXY(i, #h, i, #h-moyennes(i), RGB(0, 152, 0))
-;   Next i
-;   
-;   ; tracer la barre de position
-;   For i = 0 To 5
-;     LineXY(pos+i, #h, pos+i, 0, RGB(0, 0, 0))
-;   Next i
-;   StopDrawing()
-  
-  If ElapsedMilliseconds() - lastTime >= 1000
-    lastTime = ElapsedMilliseconds()
-    ;     Debug "Événement déclenché à " + FormatDate("%hh:%ii:%ss", Date())
-    ;     Debug even
-    ;     Debug #PB_Event_CloseWindow
+        EndSelect
+      Default
+;         Debug "oh" 
+    EndSelect 
+  Else
+    Delay(50)
+;     Debug "ok"
+    pos = sf_seek(audioData\file, 0, #SEEK_CUR);
+    pourc = pos / audioData\info\frames * 1.0
+    pos = Int(pourc*#w)
+    
+    dessine(monCanva, pos, moyennes())
+    
   EndIf
 Until Event = #PB_Event_CloseWindow  ; If the user has pressed on the window close button
 
-
-
-; === Boucle lecture audio ===
-; Repeat
-;   Pa_Sleep(10)
-; ForEver
 
 ; === Nettoyage ===
 Pa_StopStream(*stream)
@@ -335,9 +310,9 @@ sf_close(audioData\file)
 ; CloseConsole()
 
 End
-; IDE Options = PureBasic 6.21 (Windows - x64)
-; CursorPosition = 264
-; FirstLine = 260
+; IDE Options = PureBasic 6.21 - C Backend (MacOS X - arm64)
+; CursorPosition = 285
+; FirstLine = 254
 ; Folding = -
 ; Optimizer
 ; EnableXP
