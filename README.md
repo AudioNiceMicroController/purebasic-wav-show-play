@@ -1,5 +1,7 @@
 # purebasic-wav-show-play
 
+<img src="capture.png" style="width:50%;">
+
 ## There are 2 test file with libs for
 - win x86
 - mac silicon

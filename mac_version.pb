@@ -1,5 +1,5 @@
-﻿;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; sndfile ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-EnableExplicit
+﻿EnableExplicit
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; sndfile ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; --- Constantes libsndfile ---
 #SFM_READ = $10 ; Mode lecture pour sf_open (0x10)
 #SFM_WRITE = $20
@@ -311,8 +311,6 @@ sf_close(audioData\file)
 
 End
 ; IDE Options = PureBasic 6.21 - C Backend (MacOS X - arm64)
-; CursorPosition = 285
-; FirstLine = 254
 ; Folding = -
 ; Optimizer
 ; EnableXP
